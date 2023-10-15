@@ -1,0 +1,186 @@
+REM Create Index in HTML from a Word Document consisting of
+'   a single table with columns:
+'   Grave Number, Surname, Christian Names, Year of Death, Age
+'	Author Alan Simpson
+'
+'	Version 1.6  2nd October 2003
+'	Convert é to &eacute; HTML literal, as done in MItoHTML
+'
+'	Version 1.5  22nd August 2003
+'	Bug fix. Preserved "/" as "¬" (un-necessary!) but failed to
+'	restore at end before saving. Remove this.
+'
+'	Version 1.4  11th August 2003
+'	Bug fix in routine to get URL$ from Grave$ when gravenumber has
+'	suffix >"d"
+'
+'	Version 1.3  12th July 2003
+'	Takes Title etc. from Document Summary
+'	Adds Column Headings to Index
+'	Expected Column Order in source changed to preferred format.
+'	(Originally had Grave Number in col 5, not col 1.)
+'
+'	Version 1.2, 1st Apr  2002 (Permits 2 letters before gravenumber)
+
+Dim Shared PathName$, q$, Title$, Copyright$
+Dim Shared SourceName$, HTMLName$
+
+Sub MAIN
+
+REM Create Title$ and Copyright$ for page footer
+'	Define a dialog to hold File Summary Information from document
+Dim dlg As FileSummaryInfo
+GetCurValues dlg
+Title$ = dlg.Title
+Yr$ = Str$(Year(Now()))
+Copyright$ = "Copyright &copy;  Oxfordshire Family History Society, " + Yr$
+
+REM Find Path to Source File
+	PathName$ = FileName$()
+	While Right$(PathName$, 1) <> "\"
+		PathName$ = Left$(PathName$, Len(PathName$) - 1)
+	Wend
+
+REM Remember name of Source File
+	SourceName$ = WindowName$()
+
+REM Create empty output document based on Normal.dot
+	FileNew .Template = "Normal"
+	HTMLName$ = WindowName$()
+
+REM Change any / to a non html-critical character (Un-necessary!)
+	Activate SourceName$
+	StartOfDocument
+	REM	EditReplace .Find = "/", .Replace = "¬", .ReplaceAll
+	REM StartOfDocument
+
+REM Build HTML Header
+	Activate HTMLName$
+	StartOfDocument
+	Insert "<html><head><title>Index of Names</title></head>"
+	InsertPara
+
+REM Build Preamble to HTML Body
+	Insert "<body background=paper.jpg "
+	Insert "link=brown vlink=brown alink=brown>"
+	InsertPara
+	Insert "<basefont face=Times Roman>"
+	InsertPara
+
+REM Build Navigation Bar
+Insert "<center><table width=90% border=1 cellpadding=2 cellspacing=2 bgcolor=#cccc99>"
+InsertPara
+Insert "<tr bgcolor=#ffeecc>"
+InsertPara
+Insert "<th width=50%><font size=+2><b>Index of Names</b></font>"
+InsertPara
+Insert "<th width=25%><A href=plan.htm>Plan</A>"
+InsertPara
+Insert "<th width=25%><A href=menu.htm>Main Menu</A>"
+InsertPara
+Insert "</table></center><p>"
+InsertPara
+
+REM Build Index Proper
+Insert "<center><table width=90%>"
+InsertPara
+Insert "<tr><td><b>Surname</b></td>"
+InsertPara
+Insert "<td><b>Forenames</b></td>"
+InsertPara
+Insert "<td><b>Died</b></td>"
+InsertPara
+Insert "<td><b>Aged</b></td>"
+InsertPara
+Insert "<td><b>Ref.</b></td>"
+InsertPara
+
+Activate SourceName$
+StartOfDocument
+MoreToDo = - 1
+While MoreToDo
+	Activate SourceName$
+	On Error Goto QUIT
+	TableSelectRow
+	MoreToDo = NextCell()
+	Grave$ = Selection$()
+	MoreToDo = NextCell()
+	Surname$ = Selection$()
+	MoreToDo = NextCell()
+	Forename$ = Selection$()
+	MoreToDo = NextCell()
+	YearDied$ = Selection$()
+	MoreToDo = NextCell()
+	Age$ = Selection$()
+	LineDown
+
+	REM Create URL from Grave$, with standard format, in lower case 
+	'	and the numeric part having 3 digits with leading zeros
+	g$ = LCase$(Grave$)
+
+	'	Clean off leading and trailing spaces due to careless typing
+	g$ = LTrim$(RTrim$(g$))
+
+	'	Extract any non-numeric prefix
+	p$ = ""
+	While Left$(g$, 1) > "9"
+		p$ = p$ + Left$(g$, 1)
+		g$ = Mid$(g$, 2)
+	Wend
+
+	'	Extract any non-numeric suffix
+	s$ = ""
+	While Right$(g$, 1) > "9"
+		s$ = Right$(g$, 1) + s$
+		g$ = Left$(g$, Len(g$) - 1)
+	Wend
+
+	'	Force numeric part to have at least 3 digits
+	'	by adding leading zeros
+	While Len(g$) < 3
+		g$ = "0" + g$
+	Wend
+
+	'	Rebuild grave number in standard form
+	g$ = p$ + g$ + s$
+	
+	'   Add subdirectory prefix
+	url$ = (Left$(g$, 1) + "/" + g$ + ".htm")
+
+	Activate HTMLName$
+	Insert "<tr><td><b>" + Surname$ + "</b></td>"
+	InsertPara
+	Insert "<td>" + Forename$ + "</td>"
+	InsertPara
+	Insert "<td>" + YearDied$ + "</td>"
+	InsertPara
+	Insert "<td>" + Age$ + "</td>"
+	InsertPara
+	Insert "<td><a href=" + url$ + ">" + Grave$ + "</a></td></tr>"
+	InsertPara
+Wend
+QUIT:
+Activate HTMLName$
+InsertPara
+Insert "</table></center>"
+InsertPara
+Insert "<p><hr color=brown width=90%>"
+InsertPara
+Insert "<center><table  width=90%>"
+InsertPara
+Insert "<tr><td><font size=1>" + Title$ + "</font></td>"
+InsertPara
+Insert "<td align=right><font size=1>" + Copyright$ + "</font></td></tr></table>"
+InsertPara
+Insert "</center></body></html>"
+InsertPara
+
+REM Handle accents 
+StartOfDocument
+EditReplace .Find = "é", .Replace = "&eacute;", .ReplaceAll
+
+REM Save HTML page
+	FileSaveAs .Name = PathName$ + "index1.htm ", .Format = 2
+	DocClose 2
+
+End Sub

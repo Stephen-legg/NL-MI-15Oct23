@@ -1,0 +1,4 @@
+<area coords="244,323,335,355" href="w/w001.htm" alt="W001">
+<area coords="414,280,505,312" href="w/w002.htm" alt="W002">
+<area coords="378,468,469,499" href="w/w004.htm" alt="W004">
+<area coords="244,506,335,537" href="w/w003.htm" alt="W003">

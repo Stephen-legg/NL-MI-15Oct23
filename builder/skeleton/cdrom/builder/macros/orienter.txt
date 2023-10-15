@@ -1,0 +1,175 @@
+REM Macro to add picture orientation codes to an MI transcription
+'	in standard format. The new codes replace any pre-existing
+'	orientation codes.
+'	Orientation information is taken from a text file ORIENT.TXT
+'	which must be in the same diectory as the transcript source.
+'	Author Alan Simpson
+'	Version 1.5, 14th August 2003
+'	Saves list of unused pictures from ORIENT.TXT as UNUSED.TXT
+'	Macro renamed from "Orient" to "Orienter" for consistency.
+'	Version 1.4, 11th July 2003
+'	Bug fix. Found first picture starting with required substring
+'	Version 1.3, 11th July 2003
+'	Bug fix of 1.2 code. (Had "Else If" where "ElseIf" wanted)
+'	Version 1.2, 22nd February 2003
+'	Protects existing code it it is µ or ¥
+'	Version 1.1, 7th February 2003
+'	First generalised version.
+Dim Shared FALSE, TRUE, PathName$, Transcript$, OrientationData$, Finished, GraveNumber$
+
+Sub MAIN
+
+REM Define Constants
+FALSE = 0
+TRUE = - 1
+Finished = FALSE
+
+REM Remember name of Document we are processing
+	Transcript$ = WindowName$()
+
+REM Define filename for Orientation Data (Always ORIENT.TXT)
+	OrientationData$ = "ORIENT.TXT"
+
+REM Find Path to Source File
+PathName$ = FileName$()
+While Right$(PathName$, 1) <> "\"
+	PathName$ = Left$(PathName$, Len(PathName$) - 1)
+Wend
+
+REM Open the file with orientation data.
+FileOpen .Name = OrientationData$
+
+REM Ensure it starts with a new para or will not find first entry
+StartOfDocument
+InsertPara
+
+REM Get First Grave Number
+Activate Transcript$
+StartOfDocument
+GraveNumber$ = GETGRAVE$
+
+REM Process each entry in the transcript
+While Not Finished
+	PROCESS
+Wend
+
+REM Close the orientation data file, without saving
+Activate OrientationData$
+FileSaveAs .Name = "unused.txt"
+REM FileClose 2
+Activate Transcript$
+
+End Sub
+
+
+Sub PROCESS
+
+REM Find matching gravenumber in Orientation Data
+Activate OrientationData$
+StartOfDocument
+GraveNumber$ = "^p" + GraveNumber$ + "."
+EditFind .Find = GraveNumber$, .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .Format = 0, .Wrap = 1
+FoundOrientation = EditFindFound()
+REM Get the orientation code for this picture
+LineDown 1
+EndOfLine 0
+StartOfLine 1
+If FoundOrientation Then
+	EditCopy
+	LineUp 1
+	LineDown 2, 1
+	EditClear
+End If
+REM Copy code into transcript. Default to "@" if code not found
+Activate Transcript$
+StartOfLine
+If FoundOrientation Then
+	EditPaste
+Else
+	Insert "@"
+End If
+
+REM See if this line already started with a code
+'	If so, protect µ and ¥, replace other codes.
+'	Otherwise add newline.
+Cancel
+CharRight 1, 1
+c$ = Selection$()
+If c$ = "@" Or c$ = "%" Or c$ = "£" Or c$ = "$" Then
+	EditClear
+ElseIf c$ = "µ" Or c$ = "¥" Then
+	CharLeft 1
+	EditClear - 1
+Else
+	CharLeft 1
+	Insert Chr$(11)
+End If
+
+REM Move to next entry in the transcript
+ParaDown 1
+GraveNumber$ = GETGRAVE$
+
+End Sub
+
+
+Function GETGRAVE$
+REM	Gets the Grave Number for the next Grave
+'	Called from within MAIN
+'	When called, the source document is the active document, and
+'	the insertion point is at the start of a paragraph, i.e. the
+'	line containing the Grave Number.
+'	At Exit, insertion point is left at the start of the next line.
+'	Values returned are:
+'	Grave$		The line as in the original document
+'	GETGRAVE$	The grave number in standard format for filenames
+
+	On Error Goto EndOfData
+	Cancel
+	EndOfLine 1
+	CharLeft 1, 1
+	Grave$ = Selection$()
+	Cancel
+	CharRight 2, 0
+
+	REM Format grave number for use in filenames
+	g$ = LCase$(Grave$)
+
+	'	Clean off leading and trailing spaces due to careless typing
+	g$ = LTrim$(RTrim$(g$))
+
+	'	Extract any non-numeric prefix
+	p$ = ""
+	While Left$(g$, 1) > "9"
+		p$ = p$ + Left$(g$, 1)
+		g$ = Mid$(g$, 2)
+	Wend
+
+	'	Extract any non-numeric suffix
+	s$ = ""
+	While Right$(g$, 1) > "9"
+		s$ = Right$(g$, 1) + s$
+		g$ = Left$(g$, Len(g$) - 1)
+	Wend
+
+	'	Force numeric part to have at least 3 digits
+	'	by adding leading zeros
+	While Len(g$) < 3
+		g$ = "0" + g$
+	Wend
+
+	'	If no numeric part, we have run out of data
+	If Val(g$) = 0 Then Goto EndOfData
+
+	'	Rebuild grave number in standard form
+	GETGRAVE$ = p$ + g$ + s$
+
+Goto ExitGetGrave	'Bypass error handler
+
+EndOfData:
+REM If it gets here, we have either run out of data,
+'	or the data format is bad.
+	Finished = TRUE
+
+ExitGetGrave:
+	On Error Goto 0
+End Function

@@ -1,0 +1,148 @@
+<HTML>
+<HEAD>
+<TITLE>Computing Zoom Location</TITLE>
+<SCRIPT language="JavaScript">
+
+// This page translates an xy co-ordinate pair from the overall plan into
+// the correct magnified plan and the location to scroll to in that plan.
+
+// Define arrays for Areas and initialise Polygon Vertices.
+// These are a sequence of xy pairs, chosen to be in the same format
+// as the coords attribute of the <AREA> tag.
+
+AreaURL = new Array()
+AreaPoly = new Array
+x = new Array()
+y = new Array()
+
+AreaURL[0]  = "plana.htm"
+AreaPoly[0] = new Array(9,57,255,48,255,228,19,222)
+
+AreaURL[1] = "planb.htm"
+AreaPoly[1] = new Array(19,222,236,231,237,361,152,364,151,417,31,429)
+
+AreaURL[2] = "planc.htm"
+AreaPoly[2] = new Array(570,174,610,158,598,125,656,102,673,135,708,121,719,143,759,137,771,175,756,204,668,267,645,273,639,259,611,270)
+
+AreaURL[3] = "pland.htm"
+AreaPoly[3] = new Array(257,47,437,39,406,401,238,413)
+
+AreaURL[4] = "plane.htm"
+AreaPoly[4] = new Array(448,39,576,33,603,159,571,174,607,270,638,258,638,310,417,388)
+
+AreaURL[5] = "planf.htm"
+AreaPoly[5] = new Array(417,400,691,304,768,405)
+
+AreaURL[6] = "plang.htm"
+AreaPoly[6] = new Array(708,311,946,207,954,242,762,300,784,403)
+
+AreaURL[7] = "planh.htm"
+AreaPoly[7] = new Array(577,33,929,10,968,180,683,295,680,260,758,205,770,172,757,132,720,142,711,120,674,131,658,101,598,115)
+
+AreaURL[8] = "planr.htm"
+AreaPoly[8] = new Array(153,367,235,364,236,411,152,417)
+
+AreaURL[9] = "planw.htm"
+AreaPoly[9] = new Array(947,204,971,200,978,234,954,239)
+
+// Split polygon co-ordinate arrays into separate x and y arrays
+// and add dummy extra point to each polygon to close the area
+
+areas = AreaPoly.length
+
+for (i=0; i<areas; i++)
+	{
+	x[i] = new Array()
+	y[i] = new Array()
+	p = AreaPoly[i].length / 2
+	for (j=0; j<p ; j++)
+		{
+		x[i][j] = AreaPoly[i][j+j]
+		y[i][j] = AreaPoly[i][j+j+1]
+		}
+	x[i][x[i].length] = x[i][0]
+	y[i][y[i].length] = y[i][0]
+	}
+
+
+// Extract x and y co-ordinates for the clicked-point from the URL string
+
+	pair  = location.search.substring(1)
+	IE4 = false
+
+
+// For IE4, location.search is not passed on, so try alternative route
+
+	if(pair == "") {
+		pair = window.name;
+		IE4 = true;
+		}
+
+	point = pair.split(",")
+	px = point[0]
+	py = point[1]
+
+
+// Identify which area contains the clicked-point
+
+	SelectedArea = -1
+
+	for (a=0; a<areas; a++)
+	{	inside = false
+		for (i=0; i<x[a].length-1; i++)
+
+		{	if(((x[a][i]<px) ^ (x[a][i+1]<px)) && ((y[a][i]>py) || (y[a][i+1]>py)))
+
+			{	yy = y[a][i] + (px-x[a][i]) * (y[a][i+1]-y[a][i]) / (x[a][i+1]-x[a][i])
+				if (yy>py)
+
+				{
+					inside = ! inside
+				}
+			}
+		}
+		if(inside)
+		{	SelectedArea = a
+			a = areas
+		}
+	}
+
+	if (SelectedArea == -1)
+	{	alert("You must click inside one of the coloured areas")
+		history.back()
+	}
+	else
+	{
+
+		// Find limits of this area
+
+		minx = 10000
+		maxx = -10000
+		miny = 10000
+		maxy = -10000
+		a = SelectedArea
+		for (i=0; i<x[a].length-1; i++)
+		{	if(x[a][i] < minx) minx = x[a][i]
+			if(x[a][i] > maxx) maxx = x[a][i]
+			if(y[a][i] < miny) miny = y[a][i]
+			if(y[a][i] > maxy) maxy = y[a][i]
+		}
+
+
+		// Express point position as % offset into the selected area
+
+		offx = Math.round((px - minx) / (maxx - minx) * 100)
+		offy = Math.round((py - miny) / (maxy - miny) * 100)
+		offxy = offx + "," + offy
+
+		// Create target URL from Area and offset sent as a "Search String" and go there.
+		if(IE4) {
+			window.name = offxy;
+			}
+		target = AreaURL[a] + "?" + offxy
+		location.replace(target)
+	}
+
+</SCRIPT>
+</HEAD>
+</HTML>

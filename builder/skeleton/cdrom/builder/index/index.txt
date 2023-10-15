@@ -1,0 +1,10 @@
+C1	CRAKE	Augustine David	1890	53
+C2	WASHBOURNE	Thomas Edward		
+C2	WASHBOURNE	Mary		
+C3	WASHBOURNE	Thomas Edward		
+C3	WASHBOURNE	Mary		
+C4	WASHBOURNE	Thomas Edward		
+C4	WASHBOURNE	Mary		
+C5	GATE 	Johês	1395	
+C6	MERE 	Johîs 	1471	
+C7	BAYLY	George	1741	56

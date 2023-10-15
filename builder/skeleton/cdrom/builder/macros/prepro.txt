@@ -1,0 +1,149 @@
+REM Pre-Processing Macro for Converting "any" format into standard.
+'
+'	Version 1.2  2001-09-23
+'
+
+Sub MAIN
+
+
+REM	Convert any New Pages to 2 New Paras
+StartOfDocument
+EditReplace .Find = "^m", .Replace = "^p^p", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .ReplaceAll, .Format = 0, .Wrap = 0
+
+REM Remove whitespace from beginning and end of lines
+StartOfDocument
+EditReplace .Find = "^p^w", .Replace = "^p", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .ReplaceAll, .Format = 0, .Wrap = 0
+EditReplace .Find = "^w^p", .Replace = "^p", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .ReplaceAll, .Format = 0, .Wrap = 0
+EditReplace .Find = "^l^w", .Replace = "^l", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .ReplaceAll, .Format = 0, .Wrap = 0
+EditReplace .Find = "^w^l", .Replace = "^l", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .ReplaceAll, .Format = 0, .Wrap = 0
+
+'REM OBSOLETE Find places where there are 2 New Paras separated by (hidden)
+''	white space and remove this whitespace. (Confuses later searches)
+'StartOfDocument
+'EditReplace .Find = "^p^w^p", .Replace = "^p^p", .Direction = 0, '.MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, '.ReplaceAll, .Format = 0, .Wrap = 0
+
+REM Find places where a New Para is preceeded by a (hidden)newline
+'	and remove this newline. (Confuses later searches)
+StartOfDocument
+EditReplace .Find = "^l^p", .Replace = "^p^p", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .ReplaceAll, .Format = 0, .Wrap = 0
+
+REM Find places where there are >2 New Paras together
+'	and reduce these to just 2 New Paras
+For I = 1 To 20
+StartOfDocument
+EditReplace .Find = "^p^p^p", .Replace = "^p^p", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .ReplaceAll, .Format = 0, .Wrap = 0
+Next I
+
+REM Make each Inscription into a single paragrah, by
+'	converting ^p^p to ^p and ^p to ^l
+StartOfDocument
+EditReplace .Find = "^p^p", .Replace = "", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .ReplaceAll, .Format = 0, .Wrap = 2
+EditReplace .Find = "^p", .Replace = "^l", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .ReplaceAll, .Format = 0, .Wrap = 2
+EditReplace .Find = "", .Replace = "^p", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .ReplaceAll, .Format = 0, .Wrap = 2
+
+REM	OBSOLETE Remove all instances of whitespace at the start of lines
+'StartOfDocument
+'EditReplace .Find = "^l^w", .Replace = "^l", .Direction = 0, '.MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, '.ReplaceAll, .Format = 0, .Wrap = 0
+
+REM There should now be ^p at the start of every inscription (SOI)
+'	and nowhere else. BUT ....
+'	There may be cases where there was no blank line before SOI in
+'	the original. These will now look like:
+'	 ^l, then 1 or 2 letters, then >=1 number.
+'	Attempt to find these now.
+StartOfDocument
+FindHidden1:
+EditFind .Find = "^l^$^?^#", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .Format = 0, .Wrap = 0
+If EditFindFound() Then
+If MsgBox("Is this the start of a New Inscription?", "Possible Number Found", 36) Then
+	CharLeft 3, 1
+	EditClear
+	Insert Chr$(13)
+End If
+Goto FindHidden1
+End If
+
+REM There may be cases with a number of just 1 letter & 1 digit
+'	which the above will miss.  Find them now.
+StartOfDocument
+FindHidden2:
+EditFind .Find = "^l^$^#", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .Format = 0, .Wrap = 0
+If EditFindFound() Then
+If MsgBox("Is this the start of a New Inscription?", "Possible Number Found", 36) Then
+	CharLeft 2, 1
+	EditClear
+	Insert Chr$(13)
+End If
+Goto FindHidden2
+End If
+
+REM	Conversely there may be cases where an inscription has contained
+'	a blank line, which will have been treated as a separate
+'	inscription. These can be identified by not having a valid
+'	inscription number as the first line.
+StartOfDocument
+FindBlankLine:
+EditFind .Find = "^p^?^?^?", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .Format = 0, .Wrap = 0
+If EditFindFound() Then
+EditFind .Find = "[A-z][0-9]", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 1, .SoundsLike = 0, .Format = 0, .Wrap = 0
+If EditFindFound() = 0 Then		'(Not Valid Inscription Number)
+'If MsgBox("Is this an unintentional blank line?", "Blank Line Found", 36) Then
+	CharLeft 3, 1
+	EditClear
+	Insert Chr$(11)
+'End If
+End If
+CharRight 1, 0
+Goto FindBlankLine
+End If
+
+REM There may be end of lines added, after "/" to help layout
+'	These will cause extra gaps in the transcription and must be
+'	removed. But in some cases, they will preceed an italic comment
+'	and then should remain.
+Stop
+StartOfDocument
+FindShortLines:
+EditFind .Find = "/^l", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, .Format = 0, .Wrap = 0
+If EditFindFound() Then
+	Insert "//" + Chr$(11)
+	CharRight 1, 1
+	If Italic() = 0 Then
+		CharLeft 1, 0
+		EditClear - 2
+		Insert " "
+	Else
+		CharRight 1, 0
+	End If
+	Goto FindShortLines
+End If
+
+REM OBSOLETE This tidying may have left some lines with intitial
+'	whitespace, so remove it again.
+'StartOfDocument
+'EditReplace .Find = "^l^w", .Replace = "^l", .Direction = 0, '.MatchCase = 0, .WholeWord = 0, .PatternMatch = 0, .SoundsLike = 0, '.ReplaceAll, .Format = 0, .Wrap = 0
+
+REM Finally we Separate out the Inscription number lines.
+StartOfDocument
+NextGrave:
+CharRight 1, 0
+CharRight 2, 1
+EditFind .Find = "[0-9]", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 1, .SoundsLike = 0, .Format = 0, .Wrap = 0
+If EditFindFound() Then
+	EditFind .Find = "[!0-Z]", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 1, .SoundsLike = 0, .Format = 0, .Wrap = 1
+	ExtendSelection
+	EditFind .Find = "[0-Z]", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 1, .SoundsLike = 0, .Format = 0, .Wrap = 0
+	CharLeft 1, 1
+	EditClear
+	Insert Chr$(11)
+Else
+	Cancel
+	ParaUp
+	EditClear - 1
+End If
+	EditFind .Find = "[a-z]", .Direction = 0, .MatchCase = 0, .WholeWord = 0, .PatternMatch = 1, .SoundsLike = 0, .Format = 0, .Wrap = 0
+ParaDown
+CharRight 1, 0
+If EditFindFound() Then Goto NextGrave
+
+End Sub

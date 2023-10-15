@@ -1,0 +1,72 @@
+<html><head>
+<title>Area W</title>
+<script>
+<!--
+function PositionWindow()
+{
+
+// Extract x and y co-ordinates for the clicked-point from the URL string
+
+	pair  = location.search.substring(1)
+	IE4 = false
+
+
+// For IE4, location.search is not passed on, so try alternative route
+
+	if(pair == "") {
+		pair = window.name;
+		IE4 = true;
+		}
+
+	p=pair.split(",")
+
+	x = p[0]
+	y = p[1]
+	xs = 100
+	ys = 100
+	xb = document.images[0].width
+	yb = document.images[0].height
+	xw = screen.availWidth - 20
+	yw = screen.availHeight - 150
+	x = (xb - xw)/2 + xb * (x - xs/2)/xs
+	y = (yb - yw)/2 + yb * (y - ys/2)/ys
+	window.scroll(x, y)
+
+}
+// -->
+</script>
+</head>
+
+<body background=paper.jpg link=brown vlink=brown alink=brown onLoad="PositionWindow()">
+<basefont face=Times Roman>
+<center><table width=90% border=1 cellpadding=2 cellspacing=2 bgcolor=#cccc99>
+<tr bgcolor=#ffeecc>
+<th width=40%><font size=+3><b>Area W</b></font>
+<th width=20%><A href=index1.htm>Index</A>
+<th width=20%><A href=plan.htm>Area Plan</A>
+<th width=20%><A href=menu.htm>Main Menu</A>
+</table></center>
+
+
+<p align=center>
+<img src="w.gif" usemap="#planmap">
+</p>
+
+<hr color=brown width=90%>
+<center><table  width=90%>
+<tr><td><font size=1>The Parish Church of St Mary, North Leigh, Oxfordshire.</font></td>
+<td align=right><font size=1>Copyright &copy;  Oxfordshire Family History Society, 2018</font></td></tr></table>
+</center>
+
+<map name="planmap">
+<area coords="244,323,335,355" href="w/w001.htm" alt="W001">
+<area coords="414,280,505,312" href="w/w002.htm" alt="W002">
+<area coords="378,468,469,499" href="w/w004.htm" alt="W004">
+<area coords="244,506,335,537" href="w/w003.htm" alt="W003">
+
+
+</map>
+
+</body></html>
+
+

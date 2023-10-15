@@ -1,0 +1,8 @@
+<area coords="778,248,787,260" href="c/c001.htm" alt="C001">
+<area coords="828,111,837,124" href="c/c002.htm" alt="C002">
+<area coords="792,124,801,137" href="c/c003.htm" alt="C003">
+<area coords="750,133,759,145" href="c/c004.htm" alt="C004">
+<area coords="836,130,845,143" href="c/c005.htm" alt="C005">
+<area coords="853,211,863,223" href="c/c006.htm" alt="C006">
+<area coords="707,147,717,159" href="c/c007.htm" alt="C007">
+

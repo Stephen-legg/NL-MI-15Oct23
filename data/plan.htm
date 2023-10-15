@@ -1,0 +1,114 @@
+<HTML>
+<HEAD>
+<TITLE>Area Plan</TITLE>
+<SCRIPT language="JavaScript"> <!--
+
+//Identify browser
+
+brow = navigator.appName + parseInt(navigator.appVersion);
+IE4 = (brow == "Microsoft Internet Explorer4")
+Pre4 = (parseInt(navigator.appVersion) < 4)
+
+
+function clickHandler(eventObject) {
+//	This provides an alternative way of passing map co-ordinates to IE
+//	to overcome a bug in IE4, whereby location.search details are not
+//	passed for files on local machine. This is done by "hijacking"
+//	the windows name variable.
+	if(IE4) {
+		offx=event.offsetX;
+		offy=event.offsetY;
+		window.name=offx + "," + offy;
+		}
+	}
+
+// -->
+</SCRIPT>
+
+</HEAD>
+
+<BODY background=paper.jpg link=brown vlink=brown alink=brown">
+<BASEFONT face=Times Roman>
+<CENTER><TABLE width=90% border=1 cellpadding=2 cellspacing=2 bgcolor=#cccc99>
+<TR bgcolor=#ffeecc>
+<TH width=50%><FONT size=+3><b>Area Plan</b></FONT>
+<TH width=25%><A href=index1.htm>Index</A>
+<TH width=25%><A href=menu.htm>Main Menu</A>
+</TABLE></CENTER>
+<P>
+
+<CENTER><TABLE width=90% cellpadding=10>
+<TR>
+<TD width=30% valign=top>
+<B>Click in any of the coloured areas for a detailed view of that area.</B>
+
+
+<SCRIPT language="JavaScript"> <!--
+
+if(Pre4)
+{
+document.write('<P><B>Since you have a 3rd Generation (or earlier) Browser, you will need to use the scroll bars to locate the correct point on the detailed view</B>')
+document.write('<TD align=center>')
+document.write('<IMG src="plan.gif" usemap="#planmap">')
+}
+else
+{
+document.write('<P><B>This will be positioned automatically, to include the point where you clicked</B>')
+document.write('<TD align=center>')
+document.write('<A href="zoom.htm" onClick="clickHandler()"><IMG src="plan.gif" ismap></A>')
+}
+
+// -->
+</SCRIPT>
+
+
+<NOSCRIPT>
+
+<P>
+<!--
+<B>Since your browser does not support JavaScript, you may need to use the
+scroll bars to locate the correct point on the detailed view</B>
+-->
+
+<TD align=center>
+<IMG src="plan.gif" usemap="#planmap">
+
+</NOSCRIPT>
+
+
+
+</TR></TABLE>
+</CENTER>
+
+<map name="planmap">
+<area alt="Area A" href="plana.htm" shape="polygon"
+coords="9,57,255,48,255,228,19,222">
+<area alt="Area B" href="planb.htm" shape="polygon"
+coords="19,222,236,231,237,361,152,364,151,417,31,429">
+<area alt="Area C" href="planc.htm" shape="polygon"
+coords="570,174,610,158,598,125,656,102,673,135,708,121,719,143,759,137,771,175,756,204,668,267,645,273,639,259,611,270">
+<area alt="Area D" href="pland.htm" shape="polygon"
+coords="257,47,437,39,406,401,238,413">
+<area alt="Area E" href="plane.htm" shape="polygon"
+coords="448,39,576,33,603,159,571,174,607,270,638,258,638,310,417,388">
+<area alt="Area F" href="planf.htm" shape="polygon"
+coords="417,400,691,304,768,405">
+<area alt="Area G" href="plang.htm" shape="polygon"
+coords="708,311,946,207,954,242,762,300,784,403">
+<area alt="Area H" href="planh.htm" shape="polygon"
+coords="577,33,929,10,968,180,683,295,680,260,758,205,770,172,757,132,720,142,711,120,674,131,658,101,598,115">
+<area alt="Area R" href="planr.htm" shape="polygon"
+coords="153,367,235,364,236,411,152,417">
+<area alt="Area W" href="planw.htm" shape="polygon"
+coords="947,204,971,200,978,234,954,239"></map>
+
+<p>
+<hr color=brown width=90%>
+<center><table  width=90%>
+<tr><td><font size=1>The Parish Church of St Mary, North Leigh, Oxfordshire.</font></td>
+<td align=right><font size=1>Copyright &copy;  Oxfordshire Family History Society, 2019</font></td></tr></table>
+</center>
+
+</body></html>
+
+

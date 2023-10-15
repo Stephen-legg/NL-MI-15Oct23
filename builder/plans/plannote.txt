@@ -1,0 +1,94 @@
+PLAN METRICS FOR THE CHURCH OF ST MARY'S NORTH LEIGH
+****************************************************
+
+October 2019
+
+All churchyard areas - A, B, C, D, E, F, G, H, R and W are present in this version of the Data Set.
+
+Actual Dimensions of Area Plans
+Area A	Width 34.47m	Height 25.43m
+Area B	Width 31.83m	Height 30.94m
+Area C	Width 29.06m	Height 24.59m
+Area D	Width 35.26m	Height 52.25m
+Area E	Width 33.83m	Height 50.39m
+Area F	Width 44.45m	Height 14.55m
+Area G	Width 34.44m	Height 27.39m
+Area H	Width 55.73m	Height 40.10m
+Area R	Width 13.16m	Height 9.77m
+Area W	Width 6.24m	Height 7.36xm
+
+Full Plan Width 135.1m	Height 60.2m
+
+Pixel Dimensions for GIF images as Imported (based on 20 pixels/metre)
+Area A		Width xxxx	Height xxx
+Area B		Width 1100	Height 850
+Area C		Width  994	Height 702
+Area D		Width xxxx	Height xxx
+Area E		Width xxxx	Height xxx
+Area F		Width xxxx	Height xxx
+Area G		Width xxxx	Height xxx
+Area H		Width xxxx	Height xxx
+Area R		Width xxxx	Height xxx
+Area W		Width xxxx	Height xxx
+Overview	Width xxxx	Height xxx
+
+Pixel Dimensions for GIF images after cropping
+Area A		Width  920	Height 668
+Area B		Width  694	Height 676
+Area C		Width  812	Height 686
+Area D		Width  456	Height 673
+Area E		Width  640	Height 947
+Area F		Width  970	Height 285
+Area G		Width  827	Height 659
+Area H		Width  920	Height 664
+Area R		Width  899	Height 659
+Area W		Width  560	Height 653
+Overview	Width  989	Height 435
+
+Colours Used
+Area	R	G	B
+A	FF	CC	CC	Pink
+B	CC	FF	CC	Green
+C	EB	EB	EB	Pale Grey
+D	FF	CC	FF	Violet
+E	CC	FF	FF	Turquoise
+F	99	CC	FF	Blue
+G	EA	D7	FF	Pale Lilac
+H	F6      E6      E6      Pale Rose	
+R	F9      E7      BF	Pale Apricot
+W	DE      EC      EC	Pale Tourquise
+
+
+
+Map vertex pairs for the Overview Plan (x,y)
+Total image size = 989,435
+
+A
+9,57,255,48,255,228,19,222
+
+B
+19,222,236,231,237,361,152,364,151,417,31,429
+
+C
+570,174,610,158,598,125,656,102,673,135,708,121,719,143,759,137,771,175,756,204,668,267,645,273,639,259,611,270
+
+D
+257,47,437,39,406,401,238,413
+
+E
+448,39,576,33,603,159,571,174,607,270,638,258,638,310,417,388
+
+F
+417,400,691,304,768,405
+
+G
+708,311,946,207,954,242,762,300,784,403
+
+H
+577,33,929,10,968,180,683,295,680,260,758,205,770,172,757,132,720,142,711,120,674,131,658,101,598,115
+
+R
+153,367,235,364,236,411,152,417
+
+W
+947,204,971,200,978,234,954,239

@@ -1,0 +1,83 @@
+REM Print MI Check Sheets Macro
+	'Records requiring checking start with an @ on the second line.
+	'Records not requiring checking start with a % in the same place.
+	'Author Alan Simpson
+
+	'Version 1.08	2003/08/31	(Bug fix. Missing label, Quit:)
+	'Version 1.07	2003/08/30	(Simplify, get all entries with "@")
+	'Version 1.06	2002/08/06  (Remove offer to sort, never written)
+	'Version 1.05	2001/11/18  (Bug fix on 1.04 pattern matching)
+
+Dim Shared OriginalName$, TempName$
+
+Sub MAIN
+
+REM Remember name of Document to Process
+	OriginalName$ = WindowName$()
+
+REM Check this is what we want to do
+If Not MsgBox("Generate Check Sheets Document?", "Check Sheet Generator", 33) Then Goto Quit
+
+REM Create empty output document based on mirecord.dot
+	FileNew .Template = "mirecord"
+	TempName$ = WindowName$()
+
+REM	Wipe any example text included in template
+	EditSelectAll
+	EditClear
+
+REM Clear any header
+	ViewHeader
+	EditSelectAll
+	EditClear
+	ViewHeader
+
+REM Clear existing Footer and build new one
+	ViewFooter
+	EditSelectAll
+	EditClear
+	Insert "Check Sheets Prepared "
+	InsertField .Field = "DATE \@ DD/MM/YYYY"
+	Insert Chr$(9) + Chr$(9)
+	Insert "Page "
+	InsertField .Field = "PAGE"
+	Insert " of "
+	InsertField .Field = "NUMPAGES"
+	ViewFooter
+
+REM Add Title
+	CenterPara
+	FontSize 18
+	Insert "Checking Sheets"
+	InsertPara
+	LeftPara
+
+REM Collect All Paragraphs containing "@"
+	Activate OriginalName$
+	If ExtendMode() Then Cancel
+	StartOfDocument
+
+REM Find first instance and clear options
+EditFind .Find = "@", .PatternMatch = 0, .Direction = 0, .Wrap = 0, .WholeWord = 0, .MatchCase = 0, .Format = 0
+
+While EditFindFound()
+	If ExtendMode() Then Cancel
+	ParaUp
+	ExtendSelection
+	ParaDown
+	EditCopy
+	Activate TempName$
+	If ExtendMode() Then Cancel
+	EditPaste
+	Activate OriginalName$
+	CharRight
+	EditFind .Find = "@"
+Wend
+
+Finished:
+	Activate TempName$
+	If ExtendMode() Then Cancel
+	StartOfDocument
+
+Quit:
+End Sub' Of MAIN

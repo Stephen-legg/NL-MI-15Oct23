@@ -1,0 +1,432 @@
+REM Macro to convert an MI transcription in standard format
+'	to a set of HTML Pages
+'	Author Alan Simpson
+'	Version 1.16 1st November 2005
+'	Works in conjunction with now format of orient.txt file to
+'	produce multiple magnified image pages for up to 9 magnified
+'	images in addition to the magnified version of the primary image
+'	This gives same result as 1.15 achieved, but without the end-user
+'	needing to have JavaScript active and with smoother transitions.
+'	Version 1.15 8th October 2005
+'	Revised version of magnified image page which automatically
+'	locates magnified images starting at axxxm.jpg
+'	Version 1.14 12th August 2004
+'	Adds picture format code ÷=Unadjusted + Separate Magnified Image
+'	Adds ability to handle upper-case E-acute correctly
+'	Version 1.13 2nd October 2003
+'	Adds Picture format code ø=No Picture
+'	Version 1.12 30th August 2003
+'	Preserves "/" not intended as line ends, i.e. 0-z both sides
+'	Version 1.11 11th August 2003
+'	Bug fix. Added missing ; after &nbsp in navbars for 1st & last
+'	Version 1.10, 22nd February 2003
+'	Picture format allows for µ=Portrait + Separate Magnified Image
+'	and ¥=Landscape + Separate Magnified Image
+'	Version 1.9, 5th October 2002
+'	Bug fix in Function GETGRAVE$ when gravenumber has suffix >"d"
+'	Version 1.8, 7th April 2002
+'	Gets Title$ from FileSummaryInfo and Copyright Year from Now()
+'	Version 1.7, 27th Feb  2002 (Removes spurious space in
+'	superscript and hides Prev / Next on Nav bar for first & last)
+'	Version 1.6, 29th Sept 2001 (Handles super/sub script and é)
+'	Version 1.5, September 2001 (Picture format allows for
+'	%=Portrait, £=Landscape, $ or @=Auto, None=Use Default)
+
+REM Declare Global Variables
+Dim Shared FALSE, TRUE, PathName$, PrevGrave$, ThisGrave$, NextGrave$, q$, Title$, Grave$, GraveName$, Copyright$, FirstGrave, Finished, PictureFormat$, DefaultPictureFormat$, MagCount
+
+Sub MAIN
+REM Define some defaults:
+	DefaultPictureFormat$ = "@"
+
+REM Find Path to Source File
+PathName$ = FileName$()
+While Right$(PathName$, 1) <> "\"
+	PathName$ = Left$(PathName$, Len(PathName$) - 1)
+Wend
+
+REM Create Title$ and Copyright$ for page footer
+'	Define a dialog to hold File Summary Information from document
+Dim dlg As FileSummaryInfo
+GetCurValues dlg
+Title$ = dlg.Title
+Yr$ = Str$(Year(Now()))
+Copyright$ = "Copyright &copy;  Oxfordshire Family History Society, " + Yr$
+
+REM Define Constants and starting values for Grave URL strings
+q$ = Chr$(34)	'Quotation Mark
+FALSE = 0
+TRUE = - 1
+FirstGrave = TRUE
+Finished = FALSE
+
+REM Read Grave Number for the first Grave.
+NextGrave$ = GETGRAVE$
+REM Copy for preceeding grave so step back just sits at first grave.
+ThisGrave$ = NextGrave$
+
+REM Request number of entries to process (to speed up testing)
+max = Val(InputBox$("Number of Entries to Convert"))
+
+REM Convert Required Number of Entries
+	For count = 1 To max
+	BUILDPAGE
+	FirstGrave = FALSE
+	If Finished Then count = max
+	Next count
+End Sub		'Of MAIN
+
+
+Sub BUILDPAGE
+REM Build up a complete HTML page.
+'	Insertion point is after the first gravenumber when called.
+EditFindClearFormatting
+ParaDown 1, 1	'Select Paragraph
+EditCopy		'Copy it
+CharRight		'Position Insert point ready for next gravenumber
+
+REM Establish grave strings for this grave and previous grave
+GraveName$ = Grave$
+PrevGrave$ = ThisGrave$
+ThisGrave$ = NextGrave$
+
+REM Get grave strings for next grave
+NextGrave$ = GETGRAVE$
+
+REM Check for Last Entry
+If Finished Then NextGrave$ = ThisGrave$
+
+REM Create main HTML page for this grave and copy in data
+FileNew .Template = "Normal", .NewTemplate = 0
+EditPaste
+
+REM Change / to a non HTML-critical character.
+'	/ not intended as line ends become `
+'	/ intended as line ends become 
+StartOfDocument
+EditReplace .Find = "([0-z])(/)([0-z])", .Replace = "\1`\3", .ReplaceAll, .PatternMatch = 1
+StartOfDocument
+EditReplace .Find = "([0-z])(/)([0-z])", .Replace = "\1`\3", .ReplaceAll, .PatternMatch = 1
+StartOfDocument
+EditReplace .Find = "/", .Replace = "", .ReplaceAll, .PatternMatch = 0
+
+REM Build header
+StartOfDocument
+Insert "<html><head><title>"
+InsertPara
+Insert GraveName$
+' CharRight
+' CharRight, 1
+InsertPara
+Insert "</title></head>"
+InsertPara
+
+REM Build body preamble
+Insert "<body background=paper.jpg link=brown vlink=brown alink=brown>"
+InsertPara
+Insert "<basefont face=Times Roman>"
+InsertPara
+
+REM Build Navigation Bar
+Insert "<center><table width=90% border=1 cellpadding=2 cellspacing=2 bgcolor=#cccc99>"
+InsertPara
+Insert "<tr bgcolor=#ffeecc>"
+InsertPara
+Insert "<th width=50%><font size=+2><b> Inscription "
+Insert GraveName$
+Insert "</b></font></th>"
+InsertPara
+Insert "<th width=12%><A href=../index1.htm>Index</A>"
+InsertPara
+Insert "<th width=12%><A href=../plan.htm>Plan</A>"
+InsertPara
+REM Handle crossing of section boundaries
+	p$ = Left$(PrevGrave$, 1)
+	n$ = Left$(NextGrave$, 1)
+	t$ = Left$(ThisGrave$, 1)
+	If p$ = t$ Then p$ = "" Else p$ = "../" + p$ + "/"
+	If n$ = t$ Then n$ = "" Else n$ = "../" + n$ + "/"
+	p$ = p$ + PrevGrave$
+	n$ = n$ + NextGrave$
+
+If FirstGrave = TRUE Then
+	Insert "<th width=12%>&nbsp;"
+Else
+	Insert "<th width=12%><A href=" + p$ + ".htm>&lt; Prev. </A>"
+End If
+InsertPara
+If Finished = TRUE Then
+	Insert "<th width=12%>&nbsp;"
+Else
+	Insert "<th width=12%><A href=" + n$ + ".htm> Next &gt;</A>"
+End If
+InsertPara
+Insert "</table></center><p>"
+InsertPara
+
+REM Position the Inscription
+Insert "<center><table width=90%><tr><td valign=top>"
+InsertPara
+
+REM Check for Picture Format / Transcriber ID line
+'	and read number of magnified images as a following
+'	digit (if present). Then remove this line, if present.
+CharRight 1, 1
+PictureFormat$ = DefaultPictureFormat$
+If Selection$() = "£" Or Selection$() = "%" Or Selection$() = "$" Or Selection$() = "@" Or Selection$() = "µ" Or Selection$() = "¥" Or Selection$() = "ø" Or Selection$() = "÷" Then
+	PictureFormat$ = Selection$()
+	CharRight 2, 0
+	CharLeft 1, 1
+	MagCount = Val(Selection$())
+	StartOfLine
+	EndOfLine 1
+	EditClear
+End If
+StartOfLine
+
+REM Format the Inscription
+MoreToCome = - 1
+While MoreToCome
+	CharRight 1, 1
+	If Italic() Then
+		StartOfLine
+		Insert "<i>"
+		EditFind .Find = "^l"
+		If EditFindFound() = 0 Then MoreToCome = 0 : EndOfDocument
+		Insert "</i><p>"
+		InsertPara
+	Else
+		StartOfLine
+		Insert "<center><b>"
+		EditFind .Find = "^l"
+		If EditFindFound() = 0 Then MoreToCome = 0 : EndOfDocument
+		Insert "</b></center><p>"
+		InsertPara
+	End If
+Wend
+Insert "</td><td align=right valign=top>"
+
+REM Insert the Picture
+If PictureFormat$ = "ø" Then
+	Picture$ = q$ + "nopic.jpg" + q$
+	MagLink$ = q$ + LCase$(ThisGrave$) + ".htm" + q$
+Else
+	Picture$ = q$ + LCase$(ThisGrave$) + ".jpg" + q$
+	MagLink$ = q$ + LCase$(ThisGrave$) + "_.htm" + q$
+End If
+If PictureFormat$ = "%" Or PictureFormat$ = "µ" Then
+	PicSize$ = " width=240 height=320"
+ElseIf PictureFormat$ = "£" Or PictureFormat$ = "¥" Then
+	PicSize$ = " width=320 height=240"
+ElseIf PictureFormat$ = "ø" Or PictureFormat$ = "÷" Then
+	PicSize$ = ""
+Else
+	PicSize$ = " width=240"
+End If
+InsertPara
+Insert "<a href=" + MagLink$ + ">"
+InsertPara
+t$ = " title=" + q$ + "Click here to magnify this image" + q$
+Insert "<img src=" + Picture$ + PicSize$ + t$ + "></a>"
+InsertPara
+Insert "</td></tr></table></center>"
+InsertPara
+Insert "<p><hr color=brown width=90%>"
+InsertPara
+Insert "<center><table  width=90%>"
+InsertPara
+Insert "<tr><td><font size=1>" + Title$ + "</font></td>"
+InsertPara
+Insert "<td align=right><font size=1>" + Copyright$ + "</font></td></tr></table>"
+InsertPara
+Insert "</center></body></html>"
+InsertPara
+
+REM Convert Line Ends in Inscription
+StartOfDocument
+EditReplace .Find = "", .Replace = "<p>", .ReplaceAll
+StartOfDocument
+EditReplace .Find = "", .Replace = "<br>", .ReplaceAll
+
+REM Restore / characters not intended as line ends
+StartOfDocument
+EditReplace .Find = "`", .Replace = "/", .ReplaceAll
+
+REM Handle superscripts and sub-scripts
+StartOfDocument
+EditFindClearFormatting
+EditFindFont .Superscript = 1
+EditFind .Find = "", .Format = 1
+While EditFindFound()
+	EditCopy
+	Insert "<sup>"
+	EditPaste
+	Insert "</sup>"
+	EditFind
+Wend
+StartOfDocument
+EditFindClearFormatting
+EditFindFont .Subscript = 1
+EditFind .Find = "", .Format = 1
+While EditFindFound()
+	EditCopy
+	Insert "<sub>"
+	EditPaste
+	Insert "</sub>"
+	EditFind
+Wend
+EditFindClearFormatting
+
+REM Fix for bug in word which causes above code to add an
+'	extra space after <sup> etc, if preceeded by a number !!!
+StartOfDocument
+EditReplace .Find = "<sup> ", .Replace = "<sup>", .ReplaceAll
+StartOfDocument
+EditReplace .Find = "<sub> ", .Replace = "<sub>", .ReplaceAll
+
+REM Handle accents 
+StartOfDocument
+EditReplace .Find = "É", .Replace = "&Eacute;", .MatchCase = 1, .ReplaceAll
+StartOfDocument
+EditReplace .Find = "é", .Replace = "&eacute;", .MatchCase = 0, .ReplaceAll
+
+REM Save HTML page
+FileSaveAs .Name = PathName$ + ThisGrave$ + ".htm", .Format = 2
+DocClose 2
+
+REM Create the Magnified Picture page or pages
+
+If PictureFormat$ = "ø" Then Goto SkipMagPic
+For MagPage = 0 To MagCount
+FileNew .Template = "Normal", .NewTemplate = 0
+StartOfDocument
+Insert "<html><head><title>"
+InsertPara
+Insert GraveName$ + " Magnified Image " + Str$(MagPage)
+InsertPara
+Insert "</title></head>"
+InsertPara
+Insert "<body background=paper.jpg link=brown vlink=brown alink=brown>"
+InsertPara
+Insert "<basefont face=Times Roman>"
+InsertPara
+REM Build Navigation Bar
+Insert "<center><table width=90% border=1 cellpadding=2 cellspacing=2 bgcolor=#cccc99>"
+InsertPara
+Insert "<tr bgcolor=#ffeecc>"
+InsertPara
+Insert "<th width=75%><font size=+2><b> " + GraveName$
+If MagPage = 0 Then
+	Insert " &nbsp; Magnified Main Image"
+Else
+	Insert " &nbsp; Supplementary Image " + Str$(MagPage)
+End If
+Insert "</b></font></th>"
+InsertPara
+Insert "<th width=25%><A href=" + ThisGrave$ + ".htm>Back to Inscription</A>"
+InsertPara
+Insert "</table></center><p>"
+InsertPara
+REM Insert the Picture
+'	Check for a separate magnified picture file
+If MagPage = 0 Then m$ = "" Else m$ = Chr$(Asc("l") + MagPage)
+If MagPage = MagCount Then
+	n$ = ""
+	t$ = q$ + "Click here to return to inscription" + q$
+ElseIf MagPage = 0 Then
+	n$ = Chr$(Asc("m") + MagPage)
+	t$ = q$ + "Click here for a supplementary image" + q$
+Else
+	n$ = Chr$(Asc("m") + MagPage)
+	t$ = q$ + "Click here for another supplementary image" + q$
+End If
+Insert "<center>"
+Picture$ = q$ + ThisGrave$ + m$ + ".jpg" + q$
+
+InsertPara
+Insert "<a href=" + ThisGrave$ + n$ + ".htm>"
+Insert "<img src=" + Picture$ + " title=" + t$ + "></a>"
+InsertPara
+Insert "</center>"
+InsertPara
+Insert "<p><hr color=brown width=90%>"
+InsertPara
+Insert "<center><table  width=90%>"
+InsertPara
+Insert "<tr><td><font size=1>" + Title$ + "</font></td>"
+InsertPara
+Insert "<td align=right><font size=1>" + Copyright$ + "</font></td></tr></table>"
+InsertPara
+Insert "</center></body></html>"
+InsertPara
+REM Save HTML page
+REM StartOfDocument
+If m$ = "" Then m$ = "_"
+FileSaveAs .Name = PathName$ + ThisGrave$ + m$ + ".htm", .Format = 2
+DocClose 2
+Next MagPage
+SkipMagPic:
+End Sub
+
+
+Function GETGRAVE$
+REM	Gets the Grave Number for the next Grave
+'	Called from within MAIN and BUILDPAGE
+'	When called, the source document is the active document, and
+'	the insertion point is at the start of a paragraph, i.e. the
+'	line containing the Grave Number.
+'	At Exit, insertion point is left at the start of the next line.
+'	Values returned are:
+'	Grave$		The line as in the original document
+'	GETGRAVE$	The grave number in standard format for filenames
+
+	On Error Goto EndOfData
+	Cancel
+	EndOfLine 1
+	CharLeft 1, 1
+	Grave$ = Selection$()
+	Cancel
+	CharRight 2, 0
+
+	REM Format grave number for use in filenames
+	g$ = LCase$(Grave$)
+
+	'	Clean off leading and trailing spaces due to careless typing
+	g$ = LTrim$(RTrim$(g$))
+
+	'	Extract any non-numeric prefix
+	p$ = ""
+	While Left$(g$, 1) > "9"
+		p$ = p$ + Left$(g$, 1)
+		g$ = Mid$(g$, 2)
+	Wend
+
+	'	Extract any non-numeric suffix
+	s$ = ""
+	While Right$(g$, 1) > "9"
+		s$ = Right$(g$, 1) + s$
+		g$ = Left$(g$, Len(g$) - 1)
+	Wend
+
+	'	Force numeric part to have at least 3 digits
+	'	by adding leading zeros
+	While Len(g$) < 3
+		g$ = "0" + g$
+	Wend
+
+	'	If no numeric part, we have run out of data
+	If Val(g$) = 0 Then Goto EndOfData
+
+	'	Rebuild grave number in standard form
+	GETGRAVE$ = p$ + g$ + s$
+
+Goto ExitGetGrave	'Bypass error handler
+
+EndOfData:
+REM If it gets here, we have either run out of data,
+'	or the data format is bad.
+	Finished = TRUE
+
+ExitGetGrave:
+	On Error Goto 0
+End Function
